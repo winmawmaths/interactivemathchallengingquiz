@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Level } from '../types'
+import type { Curriculum, Grade, Level } from '../types'
 import { generateQuestion } from '../quiz/generate'
 import type { InputQuestion, QuizResult } from '../quiz/quizTypes'
 import { clamp } from '../lib/random'
+import type { TopicId } from '../quiz/topics'
 
 function normalize(s: string) {
   return s.trim().replace(/\s+/g, '')
@@ -19,12 +20,21 @@ function isCorrect(expected: string, got: string) {
   return e.toLowerCase() === g.toLowerCase()
 }
 
-export function QuickFire(props: { level: Level; onComplete: (r: QuizResult) => void }) {
+export function QuickFire(props: {
+  level: Level
+  grade: Grade
+  curriculum: Curriculum
+  topic: TopicId
+  onComplete: (r: QuizResult) => void
+}) {
   const ROUND_SECONDS = props.level === 'primary' ? 60 : props.level === 'secondary' ? 70 : 75
 
   const [running, setRunning] = useState(false)
   const [timeLeft, setTimeLeft] = useState(ROUND_SECONDS)
-  const [q, setQ] = useState<InputQuestion>(() => generateQuestion(props.level, 'quickfire') as InputQuestion)
+  const [q, setQ] = useState<InputQuestion>(
+    () =>
+      generateQuestion(props.level, props.grade, props.curriculum, props.topic, 'quickfire') as InputQuestion,
+  )
   const [answer, setAnswer] = useState('')
   const [streak, setStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
@@ -73,13 +83,13 @@ export function QuickFire(props: { level: Level; onComplete: (r: QuizResult) => 
     setPoints(0)
     setAnswer('')
     setFlash(null)
-    setQ(generateQuestion(props.level, 'quickfire') as InputQuestion)
+    setQ(generateQuestion(props.level, props.grade, props.curriculum, props.topic, 'quickfire') as InputQuestion)
     window.setTimeout(() => inputRef.current?.focus(), 0)
   }
 
   function next() {
     setAnswer('')
-    setQ(generateQuestion(props.level, 'quickfire') as InputQuestion)
+    setQ(generateQuestion(props.level, props.grade, props.curriculum, props.topic, 'quickfire') as InputQuestion)
   }
 
   function submit() {

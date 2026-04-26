@@ -1,19 +1,29 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { Level } from '../types'
+import type { Curriculum, Grade, Level } from '../types'
 import { generateQuestion } from '../quiz/generate'
 import type { McqQuestion, QuizResult } from '../quiz/quizTypes'
 import { clamp } from '../lib/random'
+import type { TopicId } from '../quiz/topics'
 
 type Phase = 'ready' | 'playing' | 'reveal' | 'done'
 
-export function PickOne(props: { level: Level; onComplete: (r: QuizResult) => void }) {
+export function PickOne(props: {
+  level: Level
+  grade: Grade
+  curriculum: Curriculum
+  topic: TopicId
+  onComplete: (r: QuizResult) => void
+}) {
   const QUESTIONS = props.level === 'primary' ? 10 : props.level === 'secondary' ? 12 : 12
   const PER_QUESTION_SECONDS = props.level === 'primary' ? 9 : props.level === 'secondary' ? 10 : 11
 
   const [phase, setPhase] = useState<Phase>('ready')
   const [index, setIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(PER_QUESTION_SECONDS)
-  const [q, setQ] = useState<McqQuestion>(() => generateQuestion(props.level, 'pickone') as McqQuestion)
+  const [q, setQ] = useState<McqQuestion>(
+    () =>
+      generateQuestion(props.level, props.grade, props.curriculum, props.topic, 'pickone') as McqQuestion,
+  )
   const [picked, setPicked] = useState<number | null>(null)
 
   const [streak, setStreak] = useState(0)
@@ -40,7 +50,7 @@ export function PickOne(props: { level: Level; onComplete: (r: QuizResult) => vo
   }, [timeLeft, phase])
 
   function freshQuestion() {
-    setQ(generateQuestion(props.level, 'pickone') as McqQuestion)
+    setQ(generateQuestion(props.level, props.grade, props.curriculum, props.topic, 'pickone') as McqQuestion)
     setPicked(null)
     setTimeLeft(PER_QUESTION_SECONDS)
   }

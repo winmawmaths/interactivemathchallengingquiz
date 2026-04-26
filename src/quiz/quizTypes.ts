@@ -1,4 +1,4 @@
-import type { Level } from '../types'
+import type { Grade, Level } from '../types'
 
 export type ActivityId = 'quickfire' | 'pickone' | 'matchpairs'
 
@@ -12,6 +12,7 @@ export type ActivityMeta = {
 export type QuestionBase = {
   id: string
   level: Level
+  grade: Grade
   points: number
   prompt: string
 }

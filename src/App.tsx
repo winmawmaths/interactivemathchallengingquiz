@@ -8,6 +8,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Lobby />} />
         <Route path="/play/:level" element={<Play />} />
+        <Route path="/play/:level/:grade" element={<Play />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import type { Level } from '../types'
+import type { Curriculum, Grade, Level } from '../types'
 import { shuffle } from '../lib/random'
 import { generateQuestion } from '../quiz/generate'
 import type { MatchPairsQuestion, QuizResult } from '../quiz/quizTypes'
+import type { TopicId } from '../quiz/topics'
 
 type PairState = {
   q: MatchPairsQuestion
@@ -11,16 +12,24 @@ type PairState = {
   rightByLeft: Map<string, string>
 }
 
-function buildState(level: Level): PairState {
-  const q = generateQuestion(level, 'matchpairs') as MatchPairsQuestion
+function buildStateFor(level: Level, grade: Grade, curriculum: Curriculum, topic: TopicId): PairState {
+  const q = generateQuestion(level, grade, curriculum, topic, 'matchpairs') as MatchPairsQuestion
   const left = q.pairs.map((p) => p.left)
   const right = shuffle(q.pairs.map((p) => p.right))
   const rightByLeft = new Map(q.pairs.map((p) => [p.left, p.right]))
   return { q, left, right, rightByLeft }
 }
 
-export function MatchPairs(props: { level: Level; onComplete: (r: QuizResult) => void }) {
-  const [state, setState] = useState<PairState>(() => buildState(props.level))
+export function MatchPairs(props: {
+  level: Level
+  grade: Grade
+  curriculum: Curriculum
+  topic: TopicId
+  onComplete: (r: QuizResult) => void
+}) {
+  const [state, setState] = useState<PairState>(() =>
+    buildStateFor(props.level, props.grade, props.curriculum, props.topic),
+  )
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null)
   const [matches, setMatches] = useState<Map<string, string>>(new Map())
   const [attempts, setAttempts] = useState(0)
@@ -35,7 +44,7 @@ export function MatchPairs(props: { level: Level; onComplete: (r: QuizResult) =>
   }, [startedAt, solved, done])
 
   function reset() {
-    setState(buildState(props.level))
+    setState(buildStateFor(props.level, props.grade, props.curriculum, props.topic))
     setSelectedLeft(null)
     setMatches(new Map())
     setAttempts(0)

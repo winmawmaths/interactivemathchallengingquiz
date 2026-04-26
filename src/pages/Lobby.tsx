@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom'
-import { LEVELS } from '../types'
+import { Link, useSearchParams } from 'react-router-dom'
+import { CURRICULUMS, LEVELS, isCurriculum, type Curriculum } from '../types'
 import { useTheme } from '../lib/useTheme'
+import { readLocal, writeLocal } from '../lib/persist'
 
 function LevelCard(props: {
   id: 'primary' | 'secondary' | 'high'
@@ -8,10 +9,11 @@ function LevelCard(props: {
   tagline: string
   flavor: string
   accents: string
+  curriculum: Curriculum
 }) {
   return (
     <Link
-      to={`/play/${props.id}`}
+      to={`/play/${props.id}?cur=${props.curriculum}`}
       className={[
         'no-tap-highlight group relative overflow-hidden rounded-[32px] border border-slate-200/40 bg-white/50 p-6 text-left shadow-[0_30px_90px_rgba(10,20,40,0.14)] backdrop-blur-xl transition',
         'hover:-translate-y-1 hover:shadow-[0_35px_120px_rgba(10,20,40,0.2)] active:translate-y-0',
@@ -53,6 +55,17 @@ function LevelCard(props: {
 
 export function Lobby() {
   useTheme(null)
+  const [sp, setSp] = useSearchParams()
+  const curParam = sp.get('cur')
+  const stored = readLocal<Curriculum>('mcl.curriculum', 'cambridge')
+  const curriculum: Curriculum = isCurriculum(curParam) ? curParam : stored
+
+  function setCurriculum(next: Curriculum) {
+    writeLocal('mcl.curriculum', next)
+    const ns = new URLSearchParams(sp)
+    ns.set('cur', next)
+    setSp(ns, { replace: true })
+  }
 
   return (
     <main className="mx-auto flex min-h-[100svh] max-w-6xl flex-col px-5 py-10">
@@ -82,6 +95,32 @@ export function Lobby() {
             Choose a school level to enter a uniquely designed “math world”. Each world has
             different pacing, visuals, and activity styles—perfect for mixed classrooms.
           </p>
+
+          <div className="mt-6">
+            <div className="text-sm font-semibold text-slate-500">Curriculum</div>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {CURRICULUMS.map((c) => {
+                const active = c.id === curriculum
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCurriculum(c.id)}
+                    className={[
+                      'no-tap-highlight rounded-2xl px-4 py-3 text-left transition',
+                      'ring-1 ring-slate-200/30 bg-white/60 hover:-translate-y-0.5',
+                      active ? 'ring-2 ring-[rgb(var(--ring))]' : '',
+                    ].join(' ')}
+                  >
+                    <div className="text-sm font-extrabold tracking-tight">{c.label}</div>
+                    <div className="mt-1 text-xs font-semibold text-slate-500">
+                      Selected: {active ? 'Yes' : 'No'}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <a className="btn btn-primary" href="#levels">
@@ -133,6 +172,7 @@ export function Lobby() {
           tagline="Candy Lab"
           flavor="Big buttons, joyful animations, and quick wins. Great for fundamentals and confidence-building."
           accents="bg-[conic-gradient(from_180deg,rgba(236,72,153,0.35),rgba(99,102,241,0.25),rgba(34,197,94,0.22),rgba(236,72,153,0.35))]"
+          curriculum={curriculum}
         />
         <LevelCard
           id="secondary"
@@ -140,6 +180,7 @@ export function Lobby() {
           tagline="Neon Arcade"
           flavor="Dark neon grid vibes with faster pacing. Designed for mental math, operations, and algebra basics."
           accents="bg-[conic-gradient(from_240deg,rgba(34,211,238,0.35),rgba(168,85,247,0.3),rgba(59,130,246,0.28),rgba(34,211,238,0.35))]"
+          curriculum={curriculum}
         />
         <LevelCard
           id="high"
@@ -147,6 +188,7 @@ export function Lobby() {
           tagline="Studio Mode"
           flavor="Clean, premium, and calm—focused on reasoning: functions, algebraic structure, and identities."
           accents="bg-[conic-gradient(from_90deg,rgba(20,184,166,0.35),rgba(99,102,241,0.24),rgba(34,197,94,0.22),rgba(20,184,166,0.35))]"
+          curriculum={curriculum}
         />
       </section>
 
