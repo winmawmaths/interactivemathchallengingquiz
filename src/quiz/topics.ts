@@ -7,16 +7,22 @@ export type TopicId =
   | 'p-addsub'
   | 'p-muldiv'
   | 'p-fracdec'
+  | 'p-geometry'
+  | 'p-measurement'
   // Secondary
   | 's-integers'
   | 's-ratiopercent'
   | 's-linear'
   | 's-geometry'
+  | 's-fractions'
+  | 's-data'
   // High
   | 'h-functions'
   | 'h-quadratics'
   | 'h-indices'
   | 'h-trig'
+  | 'h-sequences'
+  | 'h-probability'
 
 export type TopicPack = {
   id: TopicId
@@ -64,6 +70,22 @@ export const TOPIC_PACKS: TopicPack[] = [
     grades: ['P3', 'P4', 'P5', 'P6'],
     curriculums: ['thai', 'myanmar', 'singapore', 'cambridge', 'ib', 'edexcel'],
   },
+  {
+    id: 'p-geometry',
+    level: 'primary',
+    label: 'Shapes & Geometry',
+    blurb: '2D shapes, angles, symmetry, and spatial reasoning.',
+    grades: PRIMARY_GRADES,
+    curriculums: ['thai', 'myanmar', 'singapore', 'cambridge', 'ib', 'edexcel'],
+  },
+  {
+    id: 'p-measurement',
+    level: 'primary',
+    label: 'Measurement',
+    blurb: 'Length, mass, time, money, and unit conversions.',
+    grades: ['P2', 'P3', 'P4', 'P5', 'P6'],
+    curriculums: ['thai', 'myanmar', 'singapore', 'cambridge', 'ib', 'edexcel'],
+  },
 
   {
     id: 's-integers',
@@ -95,6 +117,22 @@ export const TOPIC_PACKS: TopicPack[] = [
     label: 'Geometry Basics',
     blurb: 'Angles, perimeter/area, and shape reasoning.',
     grades: ['S1', 'S2', 'S3'],
+    curriculums: ['thai', 'myanmar', 'singapore', 'cambridge', 'ib', 'edexcel'],
+  },
+  {
+    id: 's-fractions',
+    level: 'secondary',
+    label: 'Fractions & Decimals',
+    blurb: 'Equivalent fractions, operations, and decimal fluency.',
+    grades: SECONDARY_GRADES,
+    curriculums: ['thai', 'myanmar', 'singapore', 'cambridge', 'ib', 'edexcel'],
+  },
+  {
+    id: 's-data',
+    level: 'secondary',
+    label: 'Data & Statistics',
+    blurb: 'Mean, median, range, and reading simple data sets.',
+    grades: SECONDARY_GRADES,
     curriculums: ['thai', 'myanmar', 'singapore', 'cambridge', 'ib', 'edexcel'],
   },
 
@@ -130,6 +168,22 @@ export const TOPIC_PACKS: TopicPack[] = [
     grades: ['H2', 'H3'],
     curriculums: ['thai', 'myanmar', 'singapore', 'cambridge', 'ib', 'edexcel'],
   },
+  {
+    id: 'h-sequences',
+    level: 'high',
+    label: 'Sequences',
+    blurb: 'Arithmetic and geometric patterns and nth terms.',
+    grades: HIGH_GRADES,
+    curriculums: ['thai', 'myanmar', 'singapore', 'cambridge', 'ib', 'edexcel'],
+  },
+  {
+    id: 'h-probability',
+    level: 'high',
+    label: 'Probability',
+    blurb: 'Single events, complements, and expected outcomes.',
+    grades: HIGH_GRADES,
+    curriculums: ['thai', 'myanmar', 'singapore', 'cambridge', 'ib', 'edexcel'],
+  },
 ]
 
 export function topicsFor(level: Level, grade: Grade, curriculum: Curriculum): TopicPack[] {
@@ -141,4 +195,3 @@ export function topicsFor(level: Level, grade: Grade, curriculum: Curriculum): T
 export function isTopicId(value: string | null | undefined): value is TopicId {
   return TOPIC_PACKS.some((t) => t.id === value)
 }
-

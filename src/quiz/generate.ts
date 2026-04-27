@@ -20,8 +20,73 @@ function makeInput(args: Omit<InputQuestion, 'kind' | 'id'>): InputQuestion {
   return { kind: 'input', id: qid(), ...args }
 }
 
+function formatBinomialRoot(root: number) {
+  return root >= 0 ? `(x - ${root})` : `(x + ${Math.abs(root)})`
+}
+
 function genPrimaryQuickfire(grade: Grade, topic: TopicId): Question {
   const gi = gradeIndexWithinLevel('primary', grade) // 0..5
+  if (topic === 'p-number') {
+    const max = [20, 50, 100, 200, 500, 1000][gi] ?? 100
+    const a = int(1, max)
+    const b = int(1, max)
+    const hi = Math.max(a, b)
+    const lo = Math.min(a, b)
+    return makeInput({
+      level: 'primary',
+      grade,
+      points: 10,
+      prompt: `Which is greater: ${hi} or ${lo}? Type the greater number.`,
+      answer: String(hi),
+      hint: 'Compare the highest place value first.',
+    })
+  }
+  if (topic === 'p-geometry') {
+    const pool =
+      gi <= 1
+        ? [
+            { prompt: 'How many sides does a triangle have?', answer: '3' },
+            { prompt: 'How many sides does a square have?', answer: '4' },
+            { prompt: 'How many corners does a rectangle have?', answer: '4' },
+          ]
+        : [
+            { prompt: 'How many lines of symmetry does a square have?', answer: '4' },
+            { prompt: 'How many right angles are in a rectangle?', answer: '4' },
+            { prompt: 'How many sides does a hexagon have?', answer: '6' },
+          ]
+    const item = pick(pool)
+    return makeInput({
+      level: 'primary',
+      grade,
+      points: 12,
+      prompt: item.prompt,
+      answer: item.answer,
+      hint: 'Picture the shape in your mind.',
+    })
+  }
+  if (topic === 'p-measurement') {
+    const pool =
+      gi <= 2
+        ? [
+            { prompt: 'How many minutes are in 1 hour?', answer: '60' },
+            { prompt: 'How many centimetres are in 1 metre?', answer: '100' },
+            { prompt: 'How many days are in 1 week?', answer: '7' },
+          ]
+        : [
+            { prompt: 'How many grams are in 1 kilogram?', answer: '1000' },
+            { prompt: 'How many millilitres are in 1 litre?', answer: '1000' },
+            { prompt: 'How many months are in 1 year?', answer: '12' },
+          ]
+    const item = pick(pool)
+    return makeInput({
+      level: 'primary',
+      grade,
+      points: 12,
+      prompt: item.prompt,
+      answer: item.answer,
+      hint: 'Use the standard unit fact you know.',
+    })
+  }
   const modePool =
     topic === 'p-addsub'
       ? (['add', 'sub'] as const)
@@ -104,6 +169,68 @@ function genPrimaryQuickfire(grade: Grade, topic: TopicId): Question {
 
 function genSecondaryQuickfire(grade: Grade, topic: TopicId): Question {
   const gi = gradeIndexWithinLevel('secondary', grade) // 0..3
+  if (topic === 's-geometry') {
+    const pool =
+      gi <= 1
+        ? [
+            { prompt: 'What is the sum of angles in a triangle?', answer: '180' },
+            { prompt: 'How many degrees is a right angle?', answer: '90' },
+            { prompt: 'What is the perimeter of a square with side 6?', answer: '24' },
+          ]
+        : [
+            { prompt: 'What is the area of a rectangle 8 by 5?', answer: '40' },
+            { prompt: 'What is the sum of angles on a straight line?', answer: '180' },
+            { prompt: 'What is the area of a triangle with base 10 and height 4?', answer: '20' },
+          ]
+    const item = pick(pool)
+    return makeInput({
+      level: 'secondary',
+      grade,
+      points: 16,
+      prompt: item.prompt,
+      answer: item.answer,
+      hint: 'Recall the geometry fact or formula.',
+    })
+  }
+  if (topic === 's-fractions') {
+    const pool =
+      gi <= 1
+        ? [
+            { prompt: 'Simplify 6/8.', answer: '3/4' },
+            { prompt: 'Convert 3/5 to decimal.', answer: '0.6' },
+            { prompt: '1/4 + 1/4 = ?', answer: '1/2' },
+          ]
+        : [
+            { prompt: '3/4 + 1/8 = ?', answer: '7/8' },
+            { prompt: '5/6 - 1/3 = ?', answer: '1/2' },
+            { prompt: 'Convert 7/8 to decimal.', answer: '0.875' },
+          ]
+    const item = pick(pool)
+    return makeInput({
+      level: 'secondary',
+      grade,
+      points: 16,
+      prompt: item.prompt,
+      answer: item.answer,
+      hint: 'Use common denominators or decimal conversion.',
+    })
+  }
+  if (topic === 's-data') {
+    const sets = [
+      { data: [3, 5, 5, 7], mean: '5' },
+      { data: [8, 10, 12], mean: '10' },
+      { data: [4, 9, 9, 10], mean: '8' },
+    ]
+    const item = pick(sets)
+    return makeInput({
+      level: 'secondary',
+      grade,
+      points: 16,
+      prompt: `Find the mean of: ${item.data.join(', ')}.`,
+      answer: item.mean,
+      hint: 'Add the values and divide by how many there are.',
+    })
+  }
   const modePool =
     topic === 's-integers'
       ? (['int'] as const)
@@ -171,6 +298,32 @@ function genSecondaryQuickfire(grade: Grade, topic: TopicId): Question {
 
 function genHighQuickfire(grade: Grade, topic: TopicId): Question {
   const gi = gradeIndexWithinLevel('high', grade) // 0..2
+  if (topic === 'h-sequences') {
+    const start = int(2, 12)
+    const diff = int(2, 8)
+    const n = int(4, 8)
+    const answer = start + (n - 1) * diff
+    return makeInput({
+      level: 'high',
+      grade,
+      points: 20,
+      prompt: `Arithmetic sequence starts ${start}, ${start + diff}, ${start + diff * 2}... Find term ${n}.`,
+      answer: String(answer),
+      hint: 'Use first term + (n - 1) times the common difference.',
+    })
+  }
+  if (topic === 'h-probability') {
+    const red = int(2, 6)
+    const blue = int(2, 6)
+    return makeInput({
+      level: 'high',
+      grade,
+      points: 20,
+      prompt: `A bag has ${red} red and ${blue} blue balls. Probability of red = ?/${red + blue}`,
+      answer: String(red),
+      hint: 'Favorable outcomes over total outcomes.',
+    })
+  }
   const modePool =
     topic === 'h-functions'
       ? (['function'] as const)
@@ -254,6 +407,23 @@ function genHighQuickfire(grade: Grade, topic: TopicId): Question {
 function genPickOne(level: Level, grade: Grade, topic: TopicId): McqQuestion {
   if (level === 'primary') {
     const gi = gradeIndexWithinLevel('primary', grade)
+    if (topic === 'p-number') {
+      const max = [20, 50, 100, 200, 500, 1000][gi] ?? 100
+      const a = int(1, max)
+      const b = int(1, max)
+      const c = int(1, max)
+      const ans = Math.max(a, b, c)
+      const choices = shuffle([String(a), String(b), String(c), String(ans)]).slice(0, 4)
+      return makeMcq({
+        level,
+        grade,
+        points: 12,
+        prompt: `Which number is greatest: ${a}, ${b}, ${c}?`,
+        choices,
+        answerIndex: choices.indexOf(String(ans)),
+        explain: 'Compare hundreds, tens, then ones.',
+      })
+    }
     if (topic === 'p-muldiv') {
       const max = [6, 8, 10, 12, 12, 15][gi] ?? 12
       const a = int(2, max)
@@ -303,6 +473,42 @@ function genPickOne(level: Level, grade: Grade, topic: TopicId): McqQuestion {
         explain: 'Think of division or equivalent fractions.',
       })
     }
+    if (topic === 'p-geometry') {
+      const pool = [
+        { prompt: 'Which shape has 3 sides?', answer: 'Triangle', choices: ['Triangle', 'Square', 'Circle', 'Rectangle'] },
+        { prompt: 'Which shape has 4 equal sides?', answer: 'Square', choices: ['Triangle', 'Square', 'Oval', 'Pentagon'] },
+        { prompt: 'Which shape has no corners?', answer: 'Circle', choices: ['Circle', 'Rectangle', 'Triangle', 'Square'] },
+      ]
+      const item = pick(pool)
+      const choices = shuffle(item.choices)
+      return makeMcq({
+        level,
+        grade,
+        points: 12,
+        prompt: item.prompt,
+        choices,
+        answerIndex: choices.indexOf(item.answer),
+        explain: 'Use the shape properties you know.',
+      })
+    }
+    if (topic === 'p-measurement') {
+      const pool = [
+        { prompt: 'How many minutes are in 1 hour?', answer: '60', choices: ['60', '30', '100', '24'] },
+        { prompt: 'How many cm are in 1 m?', answer: '100', choices: ['10', '100', '1000', '60'] },
+        { prompt: 'How many months are in 1 year?', answer: '12', choices: ['10', '11', '12', '24'] },
+      ]
+      const item = pick(pool)
+      const choices = shuffle(item.choices)
+      return makeMcq({
+        level,
+        grade,
+        points: 12,
+        prompt: item.prompt,
+        choices,
+        answerIndex: choices.indexOf(item.answer),
+        explain: 'Recall the unit conversion fact.',
+      })
+    }
 
     // default add/sub
     const min = gi <= 1 ? 1 : 10
@@ -332,6 +538,60 @@ function genPickOne(level: Level, grade: Grade, topic: TopicId): McqQuestion {
   }
   if (level === 'secondary') {
     const gi = gradeIndexWithinLevel('secondary', grade)
+    if (topic === 's-geometry') {
+      const pool = [
+        { prompt: 'What is the sum of angles in a triangle?', answer: '180', choices: ['90', '180', '270', '360'] },
+        { prompt: 'Area of rectangle 7 by 3?', answer: '21', choices: ['10', '14', '21', '24'] },
+        { prompt: 'Perimeter of square side 5?', answer: '20', choices: ['10', '15', '20', '25'] },
+      ]
+      const item = pick(pool)
+      const choices = shuffle(item.choices)
+      return makeMcq({
+        level,
+        grade,
+        points: 18,
+        prompt: item.prompt,
+        choices,
+        answerIndex: choices.indexOf(item.answer),
+        explain: 'Use the correct geometry fact or formula.',
+      })
+    }
+    if (topic === 's-fractions') {
+      const pool = [
+        { prompt: 'Which is equal to 3/4?', answer: '0.75', choices: ['0.4', '0.5', '0.75', '0.8'] },
+        { prompt: '1/2 + 1/4 = ?', answer: '3/4', choices: ['2/4', '3/4', '1/4', '4/4'] },
+        { prompt: 'Which fraction is simplest form of 4/8?', answer: '1/2', choices: ['2/4', '1/2', '3/4', '2/3'] },
+      ]
+      const item = pick(pool)
+      const choices = shuffle(item.choices)
+      return makeMcq({
+        level,
+        grade,
+        points: 18,
+        prompt: item.prompt,
+        choices,
+        answerIndex: choices.indexOf(item.answer),
+        explain: 'Work with equivalent fractions or decimals.',
+      })
+    }
+    if (topic === 's-data') {
+      const pool = [
+        { prompt: 'Mean of 2, 4, 6?', answer: '4', choices: ['3', '4', '5', '6'] },
+        { prompt: 'Median of 3, 5, 9?', answer: '5', choices: ['3', '4', '5', '9'] },
+        { prompt: 'Range of 4, 10, 7?', answer: '6', choices: ['3', '4', '6', '7'] },
+      ]
+      const item = pick(pool)
+      const choices = shuffle(item.choices)
+      return makeMcq({
+        level,
+        grade,
+        points: 18,
+        prompt: item.prompt,
+        choices,
+        answerIndex: choices.indexOf(item.answer),
+        explain: 'Pick the correct data measure.',
+      })
+    }
     if (topic === 's-ratiopercent') {
       const base = pick([50, 60, 80, 100, 120, 150, 200])
       const p = pick((gi <= 1 ? ([5, 10, 20, 25] as const) : ([10, 12.5, 15, 20, 25, 30] as const)) as readonly number[])
@@ -398,6 +658,45 @@ function genPickOne(level: Level, grade: Grade, topic: TopicId): McqQuestion {
   }
   // high
   const gi = gradeIndexWithinLevel('high', grade)
+  if (topic === 'h-functions') {
+    const a = pick([2, 3, -1, -2])
+    const b = int(-6, 6)
+    const x = int(-4, 4)
+    const ans = a * x + b
+    const bStr = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`
+    const choices = shuffle([String(ans), String(ans + 1), String(ans - 1), String(a + x + b)])
+    return makeMcq({
+      level,
+      grade,
+      points: 22,
+      prompt: `Given f(x) = ${a}x ${bStr}, find f(${x}).`,
+      choices,
+      answerIndex: choices.indexOf(String(ans)),
+      explain: 'Substitute the value of x into the rule.',
+    })
+  }
+  if (topic === 'h-quadratics') {
+    const r1 = pick([1, 2, 3, -1, -2])
+    const r2 = pick([2, 3, 4, -2, -3])
+    const p = -(r1 + r2)
+    const q = r1 * r2
+    const correct = `${formatBinomialRoot(r1)}${formatBinomialRoot(r2)}`
+    const choices = shuffle([
+      correct,
+      `(x + ${r1})(x + ${r2})`,
+      `${formatBinomialRoot(r1)}${r2 >= 0 ? `(x + ${r2})` : `(x - ${Math.abs(r2)})`}`,
+      `(x + ${Math.abs(r1)})(x - ${Math.abs(r2)})`,
+    ])
+    return makeMcq({
+      level,
+      grade,
+      points: 22,
+      prompt: `Which factorization matches x^2 ${p >= 0 ? '+ ' : '- '}${Math.abs(p)}x ${q >= 0 ? '+ ' : '- '}${Math.abs(q)}?`,
+      choices,
+      answerIndex: choices.indexOf(correct),
+      explain: 'Roots determine the binomial factors.',
+    })
+  }
   if (topic === 'h-indices') {
     const base = pick([2, 3, 5, 10])
     const m = int(2 + gi, 5 + gi)
@@ -441,6 +740,36 @@ function genPickOne(level: Level, grade: Grade, topic: TopicId): McqQuestion {
       explain: 'Use special angle values.',
     })
   }
+  if (topic === 'h-sequences') {
+    const start = int(1, 10)
+    const diff = int(2, 6)
+    const ans = start + 4 * diff
+    const choices = shuffle([String(ans), String(ans + diff), String(ans - diff), String(start + 3 * diff)])
+    return makeMcq({
+      level,
+      grade,
+      points: 22,
+      prompt: `Find the 5th term: ${start}, ${start + diff}, ${start + 2 * diff}, ...`,
+      choices,
+      answerIndex: choices.indexOf(String(ans)),
+      explain: 'Arithmetic sequences add the same difference each time.',
+    })
+  }
+  if (topic === 'h-probability') {
+    const total = pick([8, 10, 12])
+    const favorable = pick([1, 2, 3, 4, 5].filter((n) => n < total))
+    const ans = `${favorable}/${total}`
+    const choices = shuffle([ans, `${total}/${favorable}`, `${favorable + 1}/${total}`, `${favorable}/${total - 1}`])
+    return makeMcq({
+      level,
+      grade,
+      points: 22,
+      prompt: `A spinner has ${favorable} winning sections out of ${total}. What is the probability of winning?`,
+      choices,
+      answerIndex: choices.indexOf(ans),
+      explain: 'Probability is favorable outcomes divided by total outcomes.',
+    })
+  }
 
   // functions/quadratics default
   const x = int(-4, 6)
@@ -470,6 +799,24 @@ function genPickOne(level: Level, grade: Grade, topic: TopicId): McqQuestion {
 function genMatchPairs(level: Level, grade: Grade, topic: TopicId): MatchPairsQuestion {
   if (level === 'primary') {
     const gi = gradeIndexWithinLevel('primary', grade)
+    if (topic === 'p-number') {
+      const pairs = shuffle([
+        { left: 'Greatest of 48 and 84', right: '84' },
+        { left: 'Smallest of 39 and 93', right: '39' },
+        { left: 'Nearest 10 of 67', right: '70' },
+        { left: 'Place value of 5 in 352', right: '50' },
+        { left: '8 hundreds', right: '800' },
+      ]).slice(0, 4)
+      return makeMatch({
+        level,
+        grade,
+        points: 20,
+        prompt: 'Match each number idea to its answer.',
+        leftLabel: 'Idea',
+        rightLabel: 'Answer',
+        pairs,
+      })
+    }
     if (topic === 'p-muldiv') {
       const max = [6, 8, 10, 12, 12, 15][gi] ?? 12
       const a = int(2, max)
@@ -517,6 +864,42 @@ function genMatchPairs(level: Level, grade: Grade, topic: TopicId): MatchPairsQu
         pairs,
       })
     }
+    if (topic === 'p-geometry') {
+      const pairs = shuffle([
+        { left: 'Triangle', right: '3 sides' },
+        { left: 'Square', right: '4 equal sides' },
+        { left: 'Rectangle', right: '4 right angles' },
+        { left: 'Circle', right: 'No corners' },
+        { left: 'Hexagon', right: '6 sides' },
+      ]).slice(0, 4)
+      return makeMatch({
+        level,
+        grade,
+        points: 20,
+        prompt: 'Match the shape to its property.',
+        leftLabel: 'Shape',
+        rightLabel: 'Property',
+        pairs,
+      })
+    }
+    if (topic === 'p-measurement') {
+      const pairs = shuffle([
+        { left: '1 hour', right: '60 minutes' },
+        { left: '1 metre', right: '100 centimetres' },
+        { left: '1 kilogram', right: '1000 grams' },
+        { left: '1 litre', right: '1000 millilitres' },
+        { left: '1 week', right: '7 days' },
+      ]).slice(0, 4)
+      return makeMatch({
+        level,
+        grade,
+        points: 20,
+        prompt: 'Match the unit to its equivalent.',
+        leftLabel: 'Unit',
+        rightLabel: 'Equivalent',
+        pairs,
+      })
+    }
 
     // p-number / p-addsub default
     const max = [20, 50, 99, 199, 499, 999][gi] ?? 99
@@ -539,6 +922,23 @@ function genMatchPairs(level: Level, grade: Grade, topic: TopicId): MatchPairsQu
   }
   if (level === 'secondary') {
     const gi = gradeIndexWithinLevel('secondary', grade)
+    if (topic === 's-integers') {
+      const pairs = shuffle([
+        { left: '-4 + 9', right: '5' },
+        { left: '7 - 12', right: '-5' },
+        { left: '-3 - 6', right: '-9' },
+        { left: '8 + (-2)', right: '6' },
+      ])
+      return makeMatch({
+        level,
+        grade,
+        points: 24,
+        prompt: 'Match each integer expression to its value.',
+        leftLabel: 'Expression',
+        rightLabel: 'Value',
+        pairs: pairs.slice(0, 4),
+      })
+    }
     if (topic === 's-linear') {
       const x = int(gi <= 1 ? -5 : -9, gi <= 1 ? 9 : 12)
       const a = pick([2, 3, 4, 5])
@@ -594,6 +994,42 @@ function genMatchPairs(level: Level, grade: Grade, topic: TopicId): MatchPairsQu
         prompt: 'Match the term to the fact/formula.',
         leftLabel: 'Term',
         rightLabel: 'Fact / formula',
+        pairs,
+      })
+    }
+    if (topic === 's-fractions') {
+      const pairs = shuffle([
+        { left: '3/4', right: '0.75' },
+        { left: '1/2', right: '0.5' },
+        { left: '2/5', right: '0.4' },
+        { left: '7/10', right: '0.7' },
+        { left: '1/8', right: '0.125' },
+      ]).slice(0, 4)
+      return makeMatch({
+        level,
+        grade,
+        points: 24,
+        prompt: 'Match each fraction to its decimal.',
+        leftLabel: 'Fraction',
+        rightLabel: 'Decimal',
+        pairs,
+      })
+    }
+    if (topic === 's-data') {
+      const pairs = shuffle([
+        { left: 'Mean of 2, 4, 6', right: '4' },
+        { left: 'Median of 1, 3, 9', right: '3' },
+        { left: 'Range of 5, 11, 9', right: '6' },
+        { left: 'Mode of 2, 2, 5, 7', right: '2' },
+        { left: 'Mean of 4, 4, 4', right: '4' },
+      ]).slice(0, 4)
+      return makeMatch({
+        level,
+        grade,
+        points: 24,
+        prompt: 'Match the data question to its answer.',
+        leftLabel: 'Question',
+        rightLabel: 'Answer',
         pairs,
       })
     }
@@ -653,6 +1089,78 @@ function genMatchPairs(level: Level, grade: Grade, topic: TopicId): MatchPairsQu
       pairs,
     })
   }
+  if (topic === 'h-functions') {
+    const pairs = shuffle([
+      { left: 'f(x) = 2x + 3, f(4)', right: '11' },
+      { left: 'f(x) = x - 5, f(9)', right: '4' },
+      { left: 'f(x) = 3x, f(6)', right: '18' },
+      { left: 'f(x) = x^2, f(5)', right: '25' },
+      { left: 'f(x) = 2x - 1, f(3)', right: '5' },
+    ]).slice(0, 4)
+    return makeMatch({
+      level,
+      grade,
+      points: 26,
+      prompt: 'Match each function rule to the correct value.',
+      leftLabel: 'Function',
+      rightLabel: 'Value',
+      pairs,
+    })
+  }
+  if (topic === 'h-quadratics') {
+    const pairs = shuffle([
+      { left: 'x^2 - 5x + 6', right: '(x - 2)(x - 3)' },
+      { left: 'x^2 + 5x + 6', right: '(x + 2)(x + 3)' },
+      { left: 'x^2 - x - 6', right: '(x - 3)(x + 2)' },
+      { left: 'x^2 + x - 6', right: '(x + 3)(x - 2)' },
+      { left: 'Discriminant of x^2+4x+1', right: '12' },
+    ]).slice(0, 4)
+    return makeMatch({
+      level,
+      grade,
+      points: 26,
+      prompt: 'Match each quadratic expression to its result.',
+      leftLabel: 'Expression',
+      rightLabel: 'Result',
+      pairs,
+    })
+  }
+  if (topic === 'h-sequences') {
+    const pairs = shuffle([
+      { left: '2, 5, 8, 11, ...', right: 'common difference 3' },
+      { left: '3, 6, 12, 24, ...', right: 'common ratio 2' },
+      { left: '1st term 4, difference 5, term 3', right: '14' },
+      { left: '1st term 7, difference 2, term 4', right: '13' },
+      { left: '5, 10, 20, 40, ...', right: 'geometric' },
+    ]).slice(0, 4)
+    return makeMatch({
+      level,
+      grade,
+      points: 26,
+      prompt: 'Match the sequence idea to the correct fact.',
+      leftLabel: 'Sequence',
+      rightLabel: 'Fact',
+      pairs,
+    })
+  }
+  if (topic === 'h-probability') {
+    const pairs = shuffle([
+      { left: 'Probability of heads on a fair coin', right: '1/2' },
+      { left: 'Probability of rolling a 6', right: '1/6' },
+      { left: 'Complement of probability 3/8', right: '5/8' },
+      { left: 'Certain event', right: '1' },
+      { left: 'Impossible event', right: '0' },
+    ]).slice(0, 4)
+    return makeMatch({
+      level,
+      grade,
+      points: 26,
+      prompt: 'Match the probability statement to its value.',
+      leftLabel: 'Statement',
+      rightLabel: 'Value',
+      pairs,
+    })
+  }
   const pairs = shuffle([
     { left: 'sin²θ + cos²θ', right: '1' },
     { left: '(a + b)²', right: 'a² + 2ab + b²' },
@@ -687,4 +1195,3 @@ export function generateQuestion(
   if (activity === 'pickone') return genPickOne(level, grade, topic)
   return genMatchPairs(level, grade, topic)
 }
-
