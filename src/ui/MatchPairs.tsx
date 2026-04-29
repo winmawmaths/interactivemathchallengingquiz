@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Curriculum, Grade, Level } from '../types'
 import { shuffle } from '../lib/random'
 import { generateQuestion } from '../quiz/generate'
@@ -33,28 +33,34 @@ export function MatchPairs(props: {
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null)
   const [matches, setMatches] = useState<Map<string, string>>(new Map())
   const [attempts, setAttempts] = useState(0)
-  const [startedAt, setStartedAt] = useState<number | null>(null)
+  const [started, setStarted] = useState(false)
+  const [seconds, setSeconds] = useState(0)
   const [done, setDone] = useState(false)
 
   const totalPairs = state.left.length
   const solved = matches.size
-  const seconds = useMemo(() => {
-    if (!startedAt) return 0
-    return Math.max(0, Math.round((Date.now() - startedAt) / 1000))
-  }, [startedAt, solved, done])
+
+  useEffect(() => {
+    if (!started || done) return
+    const t = window.setInterval(() => {
+      setSeconds((s) => s + 1)
+    }, 1000)
+    return () => window.clearInterval(t)
+  }, [done, started])
 
   function reset() {
     setState(buildStateFor(props.level, props.grade, props.curriculum, props.topic))
     setSelectedLeft(null)
     setMatches(new Map())
     setAttempts(0)
-    setStartedAt(null)
+    setStarted(false)
+    setSeconds(0)
     setDone(false)
   }
 
   function pickLeft(v: string) {
     if (done) return
-    if (!startedAt) setStartedAt(Date.now())
+    if (!started) setStarted(true)
     if (matches.has(v)) return
     setSelectedLeft((cur) => (cur === v ? null : v))
   }
@@ -62,7 +68,7 @@ export function MatchPairs(props: {
   function pickRight(v: string) {
     if (done) return
     if (!selectedLeft) return
-    if (!startedAt) setStartedAt(Date.now())
+    if (!started) setStarted(true)
 
     setAttempts((a) => a + 1)
     const expected = state.rightByLeft.get(selectedLeft)
@@ -86,57 +92,51 @@ export function MatchPairs(props: {
           bestStreak: totalPairs,
         })
       }
-    } else {
-      // keep left selected; student can try another right option
     }
   }
 
   return (
-    <div className="card relative overflow-hidden p-6 sm:p-8">
-      <div className="pointer-events-none absolute -inset-20 opacity-70 blur-2xl">
-        <div className="h-full w-full bg-[radial-gradient(circle_at_20%_20%,rgba(34,197,94,0.18),transparent_60%),radial-gradient(circle_at_75%_45%,rgba(20,184,166,0.18),transparent_55%),radial-gradient(circle_at_40%_100%,rgba(99,102,241,0.16),transparent_60%)]" />
-      </div>
-
+    <div className="card game-panel">
       <div className="relative">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="chip">Match Pairs</div>
-            <div className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
+            <div className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
               Connect the ideas.
             </div>
-            <div className="mt-2 text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+            <div className="mt-2 text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
               Tap a left card, then tap its matching right card.
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold">
-            <div className="rounded-2xl bg-white/60 px-3 py-2 ring-1 ring-slate-200/30 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40">
+          <div className="grid grid-cols-3 gap-2 text-center text-xs font-black uppercase">
+            <div className="stat-tile [data-theme='secondary']:[&]:bg-white/10">
               <div className="text-slate-500">Solved</div>
-              <div className="text-lg font-extrabold text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
+              <div className="text-lg font-black text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
                 {solved}/{totalPairs}
               </div>
             </div>
-            <div className="rounded-2xl bg-white/60 px-3 py-2 ring-1 ring-slate-200/30 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40">
+            <div className="stat-tile [data-theme='secondary']:[&]:bg-white/10">
               <div className="text-slate-500">Attempts</div>
-              <div className="text-lg font-extrabold text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
+              <div className="text-lg font-black text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
                 {attempts}
               </div>
             </div>
-            <div className="rounded-2xl bg-white/60 px-3 py-2 ring-1 ring-slate-200/30 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40">
+            <div className="stat-tile [data-theme='secondary']:[&]:bg-white/10">
               <div className="text-slate-500">Time</div>
-              <div className="text-lg font-extrabold text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
-                {startedAt ? `${seconds}s` : '—'}
+              <div className="text-lg font-black text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
+                {started ? `${seconds}s` : '--'}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-7 rounded-[28px] border border-slate-200/30 bg-white/70 p-5 sm:p-7 [data-theme='secondary']:[&]:border-slate-600/40 [data-theme='secondary']:[&]:bg-white/10">
-          <div className="text-sm font-semibold text-slate-500">Prompt</div>
-          <div className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">{state.q.prompt}</div>
+        <div className="mt-7 rounded-2xl border-4 border-[rgb(var(--line))] bg-white/80 p-5 shadow-[0_8px_0_rgba(29,34,53,0.14)] sm:p-7 [data-theme='secondary']:[&]:bg-white/10">
+          <div className="text-sm font-black uppercase text-slate-500">Prompt</div>
+          <div className="mt-2 text-2xl font-black tracking-tight sm:text-4xl">{state.q.prompt}</div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
             <div>
-              <div className="mb-2 text-xs font-semibold text-slate-500">
+              <div className="mb-2 text-xs font-black uppercase text-slate-500">
                 {state.q.leftLabel ?? 'Left'}
               </div>
               <div className="grid gap-2">
@@ -149,18 +149,16 @@ export function MatchPairs(props: {
                       type="button"
                       onClick={() => pickLeft(v)}
                       className={[
-                        'no-tap-highlight rounded-[22px] px-4 py-4 text-left transition',
-                        'ring-1 ring-slate-200/30 bg-white/70',
-                        "[data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40",
-                        matched ? 'opacity-70' : 'hover:-translate-y-0.5',
-                        active ? 'ring-4 ring-[rgba(var(--ring),0.35)]' : '',
+                        'choice-tile [data-theme=\'secondary\']:[&]:bg-white/10',
+                        matched ? 'opacity-70' : '',
+                        active ? 'ring-4 ring-[rgba(var(--ring),0.42)]' : '',
                       ].join(' ')}
                       disabled={matched || done}
                     >
-                      <div className="text-lg font-extrabold tracking-tight">{v}</div>
+                      <div className="text-lg font-black tracking-tight">{v}</div>
                       {matched && (
-                        <div className="mt-1 text-xs font-semibold text-slate-500">
-                          Matched → {matches.get(v)}
+                        <div className="mt-1 text-xs font-black uppercase text-slate-500">
+                          Matched: {matches.get(v)}
                         </div>
                       )}
                     </button>
@@ -170,7 +168,7 @@ export function MatchPairs(props: {
             </div>
 
             <div>
-              <div className="mb-2 text-xs font-semibold text-slate-500">
+              <div className="mb-2 text-xs font-black uppercase text-slate-500">
                 {state.q.rightLabel ?? 'Right'}
               </div>
               <div className="grid gap-2">
@@ -182,22 +180,20 @@ export function MatchPairs(props: {
                       type="button"
                       onClick={() => pickRight(v)}
                       className={[
-                        'no-tap-highlight rounded-[22px] px-4 py-4 text-left transition',
-                        'ring-1 ring-slate-200/30 bg-white/70',
-                        "[data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40",
-                        alreadyUsed ? 'opacity-60' : 'hover:-translate-y-0.5',
+                        'choice-tile [data-theme=\'secondary\']:[&]:bg-white/10',
+                        alreadyUsed ? 'opacity-60' : '',
                       ].join(' ')}
                       disabled={alreadyUsed || done || !selectedLeft}
                     >
-                      <div className="text-lg font-extrabold tracking-tight">{v}</div>
+                      <div className="text-lg font-black tracking-tight">{v}</div>
                       {!selectedLeft && (
-                        <div className="mt-1 text-xs font-semibold text-slate-500">
+                        <div className="mt-1 text-xs font-black uppercase text-slate-500">
                           Pick a left card first
                         </div>
                       )}
                       {selectedLeft && (
-                        <div className="mt-1 text-xs font-semibold text-slate-500">
-                          Match with: <span className="font-extrabold">{selectedLeft}</span>
+                        <div className="mt-1 text-xs font-black uppercase text-slate-500">
+                          Match with: <span className="font-black">{selectedLeft}</span>
                         </div>
                       )}
                     </button>
@@ -211,7 +207,7 @@ export function MatchPairs(props: {
             <button className="btn btn-ghost px-6" type="button" onClick={reset}>
               New set
             </button>
-            <div className="text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+            <div className="text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
               {done ? (
                 <span className="font-bold">Solved! Great teamwork.</span>
               ) : selectedLeft ? (
@@ -228,4 +224,3 @@ export function MatchPairs(props: {
     </div>
   )
 }
-

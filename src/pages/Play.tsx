@@ -12,9 +12,9 @@ import { PickOne } from '../ui/PickOne'
 import { MatchPairs } from '../ui/MatchPairs'
 
 function levelLabel(level: Level) {
-  if (level === 'primary') return 'Primary · Candy Lab'
-  if (level === 'secondary') return 'Secondary · Neon Arcade'
-  return 'High School · Studio Mode'
+  if (level === 'primary') return 'Primary / Candy Quest'
+  if (level === 'secondary') return 'Secondary / Neon Arcade'
+  return 'High School / Strategy Arena'
 }
 
 function ActivityPicker(props: {
@@ -31,26 +31,24 @@ function ActivityPicker(props: {
             type="button"
             onClick={() => props.onSelect(a.id)}
             className={[
-              'no-tap-highlight card group relative overflow-hidden p-5 text-left transition',
-              active ? 'ring-2 ring-[rgb(var(--ring))]' : 'hover:-translate-y-0.5',
+              'no-tap-highlight card group relative overflow-hidden p-5 text-left transition hover:-translate-y-1 active:translate-y-1',
+              active ? 'ring-4 ring-[rgba(var(--ring),0.42)]' : '',
             ].join(' ')}
           >
-            <div className="pointer-events-none absolute -inset-16 opacity-70 blur-2xl transition group-hover:opacity-100">
-              <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(99,102,241,0.22),transparent_60%),radial-gradient(circle_at_70%_60%,rgba(236,72,153,0.18),transparent_55%),radial-gradient(circle_at_40%_95%,rgba(34,197,94,0.16),transparent_60%)]" />
-            </div>
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(250,204,21,0.2),transparent_45%),radial-gradient(circle_at_80%_16%,rgba(14,165,233,0.22),transparent_22%)] opacity-70 transition group-hover:opacity-100" />
             <div className="relative">
               <div className="flex items-center justify-between gap-3">
-                <div className="text-lg font-extrabold tracking-tight">{a.name}</div>
+                <div className="text-lg font-black tracking-tight">{a.name}</div>
                 <div className="chip">{active ? 'Active' : 'Tap'}</div>
               </div>
-              <div className="mt-2 text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+              <div className="mt-2 text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
                 {a.blurb}
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {a.skillTags.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full bg-white/60 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200/30 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:text-slate-200 [data-theme='secondary']:[&]:ring-slate-600/40"
+                    className="rounded-lg border-2 border-slate-800 bg-white/80 px-3 py-1 text-xs font-black uppercase text-slate-700 [data-theme='secondary']:[&]:border-cyan-100/60 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:text-slate-200"
                   >
                     {t}
                   </span>
@@ -69,15 +67,15 @@ function ResultToast(props: { result: QuizResult; onClose: () => void }) {
     <div className="card fixed bottom-5 right-5 z-50 w-[min(420px,calc(100vw-40px))] p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold text-slate-500">Round complete</div>
-          <div className="mt-1 text-xl font-extrabold tracking-tight">
-            {props.result.points} pts · {props.result.correct}/{props.result.total} correct
+          <div className="text-sm font-black uppercase text-slate-500">Round complete</div>
+          <div className="mt-1 text-xl font-black tracking-tight">
+            {props.result.points} pts / {props.result.correct}/{props.result.total} correct
           </div>
-          <div className="mt-2 text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+          <div className="mt-2 text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
             Best streak: <span className="font-bold">{props.result.bestStreak}</span>
           </div>
         </div>
-        <button className="btn btn-ghost px-3 py-2" onClick={props.onClose} type="button">
+        <button className="btn btn-ghost px-3 py-2 normal-case" onClick={props.onClose} type="button">
           Close
         </button>
       </div>
@@ -99,12 +97,22 @@ export function Play() {
   const [activity, setActivity] = useState<ActivityId>('quickfire')
   const [lastResult, setLastResult] = useState<QuizResult | null>(null)
 
+  const grades = level ? GRADES_BY_LEVEL[level] : GRADES_BY_LEVEL.primary
+  const defaultGrade = grades[0]!
+  const activeGrade: Grade = grade && grades.includes(grade) ? grade : defaultGrade
+  const topicPacks = level ? topicsFor(level, activeGrade, curriculum) : []
+  const topicParam = searchParams.get('topic')
+  const activeTopic: TopicId =
+    isTopicId(topicParam) && topicPacks.some((t) => t.id === topicParam)
+      ? topicParam
+      : (topicPacks[0]?.id ?? 'p-number')
+
   if (!level) {
     return (
-      <main className="mx-auto flex min-h-[100svh] max-w-3xl flex-col items-center justify-center px-5 py-10">
+      <main className="game-page items-center justify-center">
         <div className="card p-6 text-center">
-          <div className="text-2xl font-extrabold">Unknown level</div>
-          <p className="mt-2 text-slate-600">Go back and choose a valid school level.</p>
+          <div className="text-2xl font-black">Unknown level</div>
+          <p className="mt-2 font-semibold text-slate-600">Go back and choose a valid school level.</p>
           <Link className="btn btn-primary mt-5" to="/">
             Back to lobby
           </Link>
@@ -112,16 +120,6 @@ export function Play() {
       </main>
     )
   }
-
-  const grades = GRADES_BY_LEVEL[level]
-  const defaultGrade = grades[0]!
-  const activeGrade: Grade = grade && grades.includes(grade) ? grade : defaultGrade
-  const topicPacks = topicsFor(level, activeGrade, curriculum)
-  const topicParam = searchParams.get('topic')
-  const activeTopic: TopicId = useMemo(() => {
-    if (isTopicId(topicParam) && topicPacks.some((t) => t.id === topicParam)) return topicParam
-    return topicPacks[0]?.id ?? 'p-number'
-  }, [topicParam, topicPacks])
 
   function setCurriculum(next: Curriculum) {
     writeLocal('mcl.curriculum', next)
@@ -131,24 +129,23 @@ export function Play() {
   }
 
   return (
-    <main className="mx-auto flex min-h-[100svh] max-w-6xl flex-col px-5 py-8">
+    <main className="game-page">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Link className="btn btn-ghost px-4 py-2" to="/">
-            ← Lobby
+          <Link className="btn btn-ghost px-4 py-2 normal-case" to="/">
+            Lobby
           </Link>
           <div>
-            <div className="text-sm font-semibold text-slate-500">Level</div>
-            <div className="text-xl font-extrabold tracking-tight">{levelLabel(level)}</div>
+            <div className="text-sm font-black uppercase text-slate-500">Level</div>
+            <div className="text-xl font-black tracking-tight">{levelLabel(level)}</div>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="chip">Grade: {gradeLabel(activeGrade)}</span>
           <span className="chip">
-            Curriculum:{' '}
-            {CURRICULUMS.find((c) => c.id === curriculum)?.short ?? curriculum.toUpperCase()}
+            Curriculum: {CURRICULUMS.find((c) => c.id === curriculum)?.short ?? curriculum.toUpperCase()}
           </span>
-          <span className="chip">Made for projector</span>
+          <span className="chip">Projector-ready</span>
         </div>
       </header>
 
@@ -156,10 +153,10 @@ export function Play() {
         <div className="card p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-sm font-semibold text-slate-500">Choose curriculum</div>
-              <div className="text-lg font-extrabold tracking-tight">Align quizzes to your syllabus</div>
+              <div className="text-sm font-black uppercase text-slate-500">Choose curriculum</div>
+              <div className="text-lg font-black tracking-tight">Align quizzes to your syllabus</div>
             </div>
-            <div className="text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+            <div className="text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
               Saved for next time.
             </div>
           </div>
@@ -173,14 +170,13 @@ export function Play() {
                   type="button"
                   onClick={() => setCurriculum(c.id)}
                   className={[
-                    'no-tap-highlight rounded-2xl px-4 py-3 text-left transition',
-                    'ring-1 ring-slate-200/30 bg-white/60 hover:-translate-y-0.5',
-                    "[data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40",
-                    active ? 'ring-2 ring-[rgb(var(--ring))]' : '',
+                    'choice-tile',
+                    "[data-theme='secondary']:[&]:bg-white/10",
+                    active ? 'ring-4 ring-[rgba(var(--ring),0.42)]' : '',
                   ].join(' ')}
                 >
-                  <div className="text-sm font-extrabold tracking-tight">{c.label}</div>
-                  <div className="mt-1 text-xs font-semibold text-slate-500">
+                  <div className="text-sm font-black tracking-tight">{c.label}</div>
+                  <div className="mt-1 text-xs font-black uppercase text-slate-500">
                     {active ? 'Active' : 'Tap to select'}
                   </div>
                 </button>
@@ -194,10 +190,10 @@ export function Play() {
         <div className="card p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-sm font-semibold text-slate-500">Choose grade</div>
-              <div className="text-lg font-extrabold tracking-tight">Teacher controls difficulty</div>
+              <div className="text-sm font-black uppercase text-slate-500">Choose grade</div>
+              <div className="text-lg font-black tracking-tight">Teacher controls difficulty</div>
             </div>
-            <div className="text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+            <div className="text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
               Higher grades unlock bigger numbers + deeper reasoning.
             </div>
           </div>
@@ -210,10 +206,9 @@ export function Play() {
                   key={g}
                   type="button"
                   className={[
-                    'no-tap-highlight rounded-2xl px-3 py-2 text-sm font-extrabold transition',
-                    'ring-1 ring-slate-200/30 bg-white/60 hover:-translate-y-0.5',
-                    "[data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40",
-                    active ? 'ring-2 ring-[rgb(var(--ring))]' : '',
+                    'choice-tile px-3 py-2 text-center text-sm',
+                    "[data-theme='secondary']:[&]:bg-white/10",
+                    active ? 'ring-4 ring-[rgba(var(--ring),0.42)]' : '',
                   ].join(' ')}
                   onClick={() => {
                     const base = `/play/${level}/${g}`
@@ -232,10 +227,10 @@ export function Play() {
         <div className="card p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-sm font-semibold text-slate-500">Choose topic pack</div>
-              <div className="text-lg font-extrabold tracking-tight">Grade → Topic → Activity</div>
+              <div className="text-sm font-black uppercase text-slate-500">Choose topic pack</div>
+              <div className="text-lg font-black tracking-tight">Grade / Topic / Activity</div>
             </div>
-            <div className="text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+            <div className="text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
               Bookmarkable: your selection stays in the URL.
             </div>
           </div>
@@ -248,8 +243,9 @@ export function Play() {
                   key={t.id}
                   type="button"
                   className={[
-                    'no-tap-highlight card p-5 text-left transition',
-                    active ? 'ring-2 ring-[rgb(var(--ring))]' : 'hover:-translate-y-0.5',
+                    'choice-tile',
+                    "[data-theme='secondary']:[&]:bg-white/10",
+                    active ? 'ring-4 ring-[rgba(var(--ring),0.42)]' : '',
                   ].join(' ')}
                   onClick={() => {
                     const next = new URLSearchParams(searchParams)
@@ -259,8 +255,8 @@ export function Play() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-lg font-extrabold tracking-tight">{t.label}</div>
-                      <div className="mt-1 text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+                      <div className="text-lg font-black tracking-tight">{t.label}</div>
+                      <div className="mt-1 text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
                         {t.blurb}
                       </div>
                     </div>
@@ -311,4 +307,3 @@ export function Play() {
     </main>
   )
 }
-

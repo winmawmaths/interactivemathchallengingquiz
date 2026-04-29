@@ -45,28 +45,24 @@ export function QuickFire(props: {
 
   const inputRef = useRef<HTMLInputElement | null>(null)
 
-  const progress = useMemo(() => {
-    return clamp(1 - timeLeft / ROUND_SECONDS, 0, 1)
-  }, [timeLeft, ROUND_SECONDS])
+  const progress = useMemo(() => clamp(1 - timeLeft / ROUND_SECONDS, 0, 1), [timeLeft, ROUND_SECONDS])
 
   useEffect(() => {
     if (!running) return
     const t = window.setInterval(() => {
       setTimeLeft((s) => {
-        if (s <= 1) return 0
+        if (s <= 1) {
+          window.setTimeout(() => {
+            setRunning(false)
+            props.onComplete({ correct, total: Math.max(total, 1), points, bestStreak })
+          }, 0)
+          return 0
+        }
         return s - 1
       })
     }, 1000)
     return () => window.clearInterval(t)
-  }, [running])
-
-  useEffect(() => {
-    if (!running) return
-    if (timeLeft > 0) return
-    setRunning(false)
-    props.onComplete({ correct, total: Math.max(total, 1), points, bestStreak })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeLeft, running])
+  }, [bestStreak, correct, points, props, running, total])
 
   useEffect(() => {
     if (!running) return
@@ -116,64 +112,60 @@ export function QuickFire(props: {
   }
 
   return (
-    <div className="card relative overflow-hidden p-6 sm:p-8">
-      <div className="pointer-events-none absolute -inset-20 opacity-70 blur-2xl">
-        <div className="h-full w-full bg-[radial-gradient(circle_at_25%_20%,rgba(99,102,241,0.26),transparent_60%),radial-gradient(circle_at_75%_45%,rgba(236,72,153,0.18),transparent_55%),radial-gradient(circle_at_40%_100%,rgba(34,197,94,0.16),transparent_60%)]" />
-      </div>
-
+    <div className="card game-panel">
       <div className="relative">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="chip">Quickfire Sprint</div>
-            <div className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
+            <div className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
               Beat the clock. Build a streak.
             </div>
-            <div className="mt-2 text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+            <div className="mt-2 text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
               Correct answers increase streak bonus. Wrong answers reset streak.
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold">
-            <div className="rounded-2xl bg-white/60 px-3 py-2 ring-1 ring-slate-200/30 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40">
+          <div className="grid grid-cols-3 gap-2 text-center text-xs font-black uppercase">
+            <div className="stat-tile [data-theme='secondary']:[&]:bg-white/10">
               <div className="text-slate-500">Time</div>
-              <div className="text-lg font-extrabold text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
+              <div className="text-lg font-black text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
                 {timeLeft}s
               </div>
             </div>
-            <div className="rounded-2xl bg-white/60 px-3 py-2 ring-1 ring-slate-200/30 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40">
+            <div className="stat-tile [data-theme='secondary']:[&]:bg-white/10">
               <div className="text-slate-500">Streak</div>
-              <div className="text-lg font-extrabold text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
+              <div className="text-lg font-black text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
                 {streak}
               </div>
             </div>
-            <div className="rounded-2xl bg-white/60 px-3 py-2 ring-1 ring-slate-200/30 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:ring-slate-600/40">
+            <div className="stat-tile [data-theme='secondary']:[&]:bg-white/10">
               <div className="text-slate-500">Points</div>
-              <div className="text-lg font-extrabold text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
+              <div className="text-lg font-black text-slate-900 [data-theme='secondary']:[&]:text-slate-100">
                 {points}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-5 h-2 overflow-hidden rounded-full bg-black/5 [data-theme='secondary']:[&]:bg-white/10">
+        <div className="mt-5 h-4 overflow-hidden rounded-full border-2 border-[rgb(var(--line))] bg-black/10 [data-theme='secondary']:[&]:bg-white/10">
           <div
-            className="h-full rounded-full bg-[linear-gradient(90deg,rgb(var(--ring)),rgb(168_85_247))]"
+            className="h-full rounded-full bg-[linear-gradient(90deg,rgb(34_197_94),rgb(250_204_21),rgb(var(--ring)))]"
             style={{ width: `${Math.round(progress * 100)}%` }}
           />
         </div>
 
         <div
           className={[
-            'mt-7 rounded-[28px] border p-5 sm:p-7',
-            'bg-white/70 border-slate-200/30 [data-theme=\'secondary\']:[&]:bg-white/10 [data-theme=\'secondary\']:[&]:border-slate-600/40',
+            'mt-7 rounded-2xl border-4 border-[rgb(var(--line))] bg-white/80 p-5 shadow-[0_8px_0_rgba(29,34,53,0.14)] sm:p-7',
+            "[data-theme='secondary']:[&]:bg-white/10",
             flash === 'good' ? 'ring-4 ring-emerald-400/40' : '',
             flash === 'bad' ? 'ring-4 ring-red-400/40' : '',
           ].join(' ')}
         >
-          <div className="text-sm font-semibold text-slate-500">Question</div>
-          <div className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{q.prompt}</div>
+          <div className="text-sm font-black uppercase text-slate-500">Question</div>
+          <div className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">{q.prompt}</div>
           {q.hint && (
-            <div className="mt-2 text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+            <div className="mt-2 text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
               Hint: {q.hint}
             </div>
           )}
@@ -187,8 +179,8 @@ export function QuickFire(props: {
                 if (e.key === 'Enter') submit()
               }}
               disabled={!running}
-              placeholder={running ? 'Type answer…' : 'Press Start…'}
-              className="w-full rounded-2xl border border-slate-200/60 bg-white/80 px-4 py-3 text-lg font-semibold tracking-tight outline-none ring-indigo-500/30 focus:ring-4 disabled:opacity-60 [data-theme='secondary']:[&]:border-slate-600/50 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:text-slate-100"
+              placeholder={running ? 'Type answer...' : 'Press Start...'}
+              className="w-full rounded-xl border-4 border-[rgb(var(--line))] bg-white/90 px-4 py-3 text-lg font-black tracking-tight outline-none ring-orange-400/30 focus:ring-4 disabled:opacity-60 [data-theme='secondary']:[&]:bg-white/10 [data-theme='secondary']:[&]:text-slate-100"
             />
             <div className="flex gap-2">
               {!running ? (
@@ -216,9 +208,9 @@ export function QuickFire(props: {
             </div>
           </div>
 
-          <div className="mt-4 text-sm text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
-            Correct: <span className="font-bold">{correct}</span> · Attempts:{' '}
-            <span className="font-bold">{total}</span> · Best streak:{' '}
+          <div className="mt-4 text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
+            Correct: <span className="font-bold">{correct}</span> / Attempts:{' '}
+            <span className="font-bold">{total}</span> / Best streak:{' '}
             <span className="font-bold">{bestStreak}</span>
           </div>
         </div>
@@ -226,4 +218,3 @@ export function QuickFire(props: {
     </div>
   )
 }
-

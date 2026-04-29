@@ -10,14 +10,13 @@ export const ACTIVITIES: ActivityMeta[] = [
   {
     id: 'pickone',
     name: 'One Is Correct',
-    blurb: 'Tap the right card before it flips away.',
+    blurb: 'Tap the right card before the timer runs out.',
     skillTags: ['reasoning', 'estimation', 'accuracy'],
   },
   {
     id: 'matchpairs',
     name: 'Match Pairs',
-    blurb: 'Connect ideas: expression ↔ value, rule ↔ example.',
+    blurb: 'Connect ideas: expression to value, rule to example.',
     skillTags: ['connections', 'pattern', 'concepts'],
   },
 ]
-
