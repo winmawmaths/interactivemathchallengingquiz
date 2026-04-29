@@ -1,6 +1,6 @@
 import type { Grade, Level } from '../types'
 
-export type ActivityId = 'quickfire' | 'pickone' | 'matchpairs'
+export type ActivityId = 'mathtug' | 'quickfire' | 'pickone' | 'matchpairs'
 
 export type ActivityMeta = {
   id: ActivityId
@@ -45,4 +45,3 @@ export type QuizResult = {
   points: number
   bestStreak: number
 }
-

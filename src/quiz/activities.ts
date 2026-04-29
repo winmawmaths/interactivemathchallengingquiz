@@ -2,6 +2,12 @@ import type { ActivityMeta } from './quizTypes'
 
 export const ACTIVITIES: ActivityMeta[] = [
   {
+    id: 'mathtug',
+    name: 'Math Tug',
+    blurb: 'Answer to pull your team across the line.',
+    skillTags: ['competition', 'teams', 'speed'],
+  },
+  {
     id: 'quickfire',
     name: 'Quickfire Sprint',
     blurb: 'Answer fast. Build streaks. Beat the clock.',

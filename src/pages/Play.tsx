@@ -10,6 +10,7 @@ import { isTopicId, topicsFor, type TopicId } from '../quiz/topics'
 import { QuickFire } from '../ui/QuickFire'
 import { PickOne } from '../ui/PickOne'
 import { MatchPairs } from '../ui/MatchPairs'
+import { MathTug } from '../ui/MathTug'
 
 function levelLabel(level: Level) {
   if (level === 'primary') return 'Primary / Candy Quest'
@@ -22,13 +23,14 @@ function ActivityPicker(props: {
   onSelect: (id: ActivityId) => void
 }) {
   const covers: Record<ActivityId, { mark: string; cover: string; label: string }> = {
-    quickfire: { mark: '60', cover: 'cover-orange', label: 'Speed game' },
+    mathtug: { mark: 'TUG', cover: 'cover-orange', label: 'Team battle' },
+    quickfire: { mark: '60', cover: '', label: 'Speed game' },
     pickone: { mark: 'A+', cover: 'cover-green', label: 'Choice game' },
     matchpairs: { mark: '2x', cover: 'cover-pink', label: 'Puzzle game' },
   }
 
   return (
-    <div className="grid gap-3 md:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {ACTIVITIES.map((a) => {
         const active = a.id === props.selected
         const cover = covers[a.id]
@@ -106,7 +108,7 @@ export function Play() {
   const curriculum: Curriculum = isCurriculum(curParam) ? curParam : stored
   useTheme(level)
 
-  const [activity, setActivity] = useState<ActivityId>('quickfire')
+  const [activity, setActivity] = useState<ActivityId>('mathtug')
   const [lastResult, setLastResult] = useState<QuizResult | null>(null)
 
   const grades = level ? GRADES_BY_LEVEL[level] : GRADES_BY_LEVEL.primary
@@ -286,6 +288,15 @@ export function Play() {
       </section>
 
       <section className="mt-6 grow">
+        {activity === 'mathtug' && (
+          <MathTug
+            level={level}
+            grade={activeGrade}
+            curriculum={curriculum}
+            topic={activeTopic}
+            onComplete={setLastResult}
+          />
+        )}
         {activity === 'quickfire' && (
           <QuickFire
             level={level}

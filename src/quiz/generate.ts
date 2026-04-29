@@ -1187,7 +1187,7 @@ export function generateQuestion(
   topic: TopicId,
   activity: ActivityId,
 ): Question {
-  if (activity === 'quickfire') {
+  if (activity === 'quickfire' || activity === 'mathtug') {
     if (level === 'primary') return genPrimaryQuickfire(grade, topic)
     if (level === 'secondary') return genSecondaryQuickfire(grade, topic)
     return genHighQuickfire(grade, topic)

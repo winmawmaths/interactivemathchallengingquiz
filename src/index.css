@@ -230,6 +230,32 @@ body {
     @apply rounded-xl border-2 border-[rgb(var(--line))] bg-white/90 px-3 py-2 text-center text-xs font-black uppercase transition;
     box-shadow: 0 4px 0 rgba(29, 34, 53, 0.14);
   }
+
+  .tug-field {
+    @apply relative overflow-hidden rounded-2xl border-4 border-[rgb(var(--line))] p-4 sm:p-6;
+    min-height: 260px;
+    background:
+      linear-gradient(90deg, rgba(248, 113, 113, 0.22), transparent 42%, transparent 58%, rgba(56, 189, 248, 0.22)),
+      linear-gradient(0deg, rgba(255, 255, 255, 0.45) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.45) 1px, transparent 1px),
+      linear-gradient(180deg, rgb(134 239 172), rgb(34 197 94));
+    background-size: auto, 34px 34px, 34px 34px, auto;
+    box-shadow: inset 0 -10px 0 rgba(29, 34, 53, 0.12), 0 8px 0 rgba(29, 34, 53, 0.14);
+  }
+  .tug-lane {
+    @apply absolute left-6 right-6 top-1/2 h-7 -translate-y-1/2 rounded-full border-4 border-slate-900 bg-amber-200;
+    box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.48);
+  }
+  .tug-center-line {
+    @apply absolute bottom-4 top-4 left-1/2 w-2 -translate-x-1/2 rounded-full border-2 border-slate-900 bg-white/80;
+  }
+  .tug-marker {
+    @apply absolute top-1/2 grid h-20 w-20 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-slate-900 bg-yellow-200 text-3xl font-black transition-all duration-300;
+    box-shadow: 0 8px 0 rgba(29, 34, 53, 0.22);
+  }
+  .tug-team {
+    @apply absolute bottom-6 top-6 grid w-[30%] place-items-center rounded-2xl border-4 border-slate-900 bg-white/70 text-center;
+  }
 }
 
 @keyframes floaty {
