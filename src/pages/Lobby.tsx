@@ -1,16 +1,37 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { CURRICULUMS, isCurriculum, type Curriculum } from '../types'
+import { CURRICULUMS, gradeLabel, isCurriculum, isGrade, type Curriculum, type Grade, type Level } from '../types'
 import { useTheme } from '../lib/useTheme'
 import { readLocal, writeLocal } from '../lib/persist'
 
 const SUBJECTS = ['All', 'Addition', 'Fractions', 'Algebra', 'Logic', 'Speed']
-const GRADES = ['K', '1', '2', '3', '4', '5', '6+']
+const GRADES: Array<{ id: Grade; short: string; level: Level }> = [
+  { id: 'P1', short: 'P1', level: 'primary' },
+  { id: 'P2', short: 'P2', level: 'primary' },
+  { id: 'P3', short: 'P3', level: 'primary' },
+  { id: 'P4', short: 'P4', level: 'primary' },
+  { id: 'P5', short: 'P5', level: 'primary' },
+  { id: 'P6', short: 'P6', level: 'primary' },
+  { id: 'S1', short: 'S1', level: 'secondary' },
+  { id: 'S2', short: 'S2', level: 'secondary' },
+  { id: 'S3', short: 'S3', level: 'secondary' },
+  { id: 'S4', short: 'S4', level: 'secondary' },
+  { id: 'H1', short: 'H1', level: 'high' },
+  { id: 'H2', short: 'H2', level: 'high' },
+  { id: 'H3', short: 'H3', level: 'high' },
+]
 
-const GAME_TILES = [
+const GAME_TILES: Array<{
+  title: string
+  blurb: string
+  levels: Level[]
+  grade: string
+  mark: string
+  cover: string
+}> = [
   {
     title: 'Times Table Rally',
     blurb: 'Race the clock with quick multiplication facts.',
-    level: 'primary',
+    levels: ['primary'],
     grade: '3-5',
     mark: 'x2',
     cover: 'cover-orange',
@@ -18,7 +39,7 @@ const GAME_TILES = [
   {
     title: 'Fraction Launch',
     blurb: 'Choose equal fractions before the rocket lifts off.',
-    level: 'primary',
+    levels: ['primary'],
     grade: '4-6',
     mark: '3/4',
     cover: 'cover-green',
@@ -26,7 +47,7 @@ const GAME_TILES = [
   {
     title: 'Integer Warp',
     blurb: 'Jump through positive and negative number gates.',
-    level: 'secondary',
+    levels: ['secondary'],
     grade: '6+',
     mark: '-7',
     cover: 'cover-pink',
@@ -34,7 +55,7 @@ const GAME_TILES = [
   {
     title: 'Algebra Dash',
     blurb: 'Solve for x and build a high-score streak.',
-    level: 'secondary',
+    levels: ['secondary', 'high'],
     grade: '6+',
     mark: 'x',
     cover: '',
@@ -42,7 +63,7 @@ const GAME_TILES = [
   {
     title: 'Function Arena',
     blurb: 'Match rules, inputs, and outputs under pressure.',
-    level: 'high',
+    levels: ['high'],
     grade: '9+',
     mark: 'f',
     cover: 'cover-green',
@@ -50,12 +71,12 @@ const GAME_TILES = [
   {
     title: 'Logic Links',
     blurb: 'Connect patterns and equivalent forms.',
-    level: 'high',
+    levels: ['secondary', 'high'],
     grade: '8+',
     mark: '99',
     cover: 'cover-orange',
   },
-] as const
+]
 
 const SCORE_ROWS = [
   ['Top Score', 'Quickfire Sprint', '980'],
@@ -63,9 +84,17 @@ const SCORE_ROWS = [
   ['In A Row', 'Fraction Launch', '24'],
 ]
 
-function GameTile(props: (typeof GAME_TILES)[number] & { curriculum: Curriculum }) {
+function levelForGrade(grade: Grade): Level {
+  if (grade.startsWith('P')) return 'primary'
+  if (grade.startsWith('S')) return 'secondary'
+  return 'high'
+}
+
+function GameTile(props: (typeof GAME_TILES)[number] & { curriculum: Curriculum; selectedGrade: Grade }) {
+  const selectedLevel = levelForGrade(props.selectedGrade)
+
   return (
-    <Link to={`/play/${props.level}?cur=${props.curriculum}`} className="game-tile">
+    <Link to={`/play/${selectedLevel}/${props.selectedGrade}?cur=${props.curriculum}`} className="game-tile">
       <div className={['game-cover', props.cover].join(' ')}>
         <div className="game-cover-mark">{props.mark}</div>
       </div>
@@ -92,13 +121,25 @@ export function Lobby() {
   useTheme(null)
   const [sp, setSp] = useSearchParams()
   const curParam = sp.get('cur')
+  const gradeParam = sp.get('grade')
   const stored = readLocal<Curriculum>('mcl.curriculum', 'cambridge')
+  const storedGrade = readLocal<Grade>('mcl.grade', 'P3')
   const curriculum: Curriculum = isCurriculum(curParam) ? curParam : stored
+  const selectedGrade: Grade = isGrade(gradeParam ?? undefined) ? (gradeParam as Grade) : storedGrade
+  const selectedLevel = levelForGrade(selectedGrade)
+  const visibleGames = GAME_TILES.filter((game) => game.levels.includes(selectedLevel))
 
   function setCurriculum(next: Curriculum) {
     writeLocal('mcl.curriculum', next)
     const ns = new URLSearchParams(sp)
     ns.set('cur', next)
+    setSp(ns, { replace: true })
+  }
+
+  function setGrade(next: Grade) {
+    writeLocal('mcl.grade', next)
+    const ns = new URLSearchParams(sp)
+    ns.set('grade', next)
     setSp(ns, { replace: true })
   }
 
@@ -133,18 +174,18 @@ export function Lobby() {
           <div className="relative max-w-3xl">
             <div className="chip mb-4">Arcade + academics = fun learning</div>
             <h1 className="text-4xl font-black tracking-tight sm:text-6xl">
-              Play free math games by grade and skill.
+              Choose your grade, then play.
             </h1>
             <p className="mt-4 text-base font-semibold text-slate-700 sm:text-lg">
-              Pick a bright game tile, choose a topic, and practice with timers, points, streaks,
-              matching challenges, and classroom-friendly controls.
+              Start by picking a grade level. The game list changes for that level, then each tile
+              opens the right grade automatically.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a className="btn btn-primary" href="#games">
-                Play
+              <a className="btn btn-primary" href="#filters">
+                Choose grade
               </a>
               <a className="btn btn-ghost normal-case" href="#filters">
-                Browse by grade
+                See games
               </a>
             </div>
           </div>
@@ -172,12 +213,26 @@ export function Lobby() {
 
       <section id="filters" className="mt-6 grid gap-4 lg:grid-cols-[1fr_1fr]">
         <div className="card p-4">
-          <div className="mb-3 text-sm font-black uppercase text-slate-500">Grades</div>
-          <div className="grid grid-cols-7 gap-2">
+          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="text-sm font-black uppercase text-slate-500">Choose Grade First</div>
+              <div className="text-xl font-black tracking-tight">{gradeLabel(selectedGrade)}</div>
+            </div>
+            <div className="chip">{selectedLevel}</div>
+          </div>
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
             {GRADES.map((grade) => (
-              <div key={grade} className="filter-pill">
-                {grade}
-              </div>
+              <button
+                key={grade.id}
+                type="button"
+                onClick={() => setGrade(grade.id)}
+                className={[
+                  'filter-pill',
+                  grade.id === selectedGrade ? 'ring-4 ring-orange-400/50' : '',
+                ].join(' ')}
+              >
+                {grade.short}
+              </button>
             ))}
           </div>
         </div>
@@ -197,13 +252,13 @@ export function Lobby() {
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="text-sm font-black uppercase text-slate-500">Play Free Games</div>
-            <h2 className="text-3xl font-black tracking-tight">Choose your challenge</h2>
+            <h2 className="text-3xl font-black tracking-tight">{gradeLabel(selectedGrade)} games</h2>
           </div>
           <div className="chip">Practice / Challenge / Logic</div>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {GAME_TILES.map((game) => (
-            <GameTile key={game.title} {...game} curriculum={curriculum} />
+          {visibleGames.map((game) => (
+            <GameTile key={game.title} {...game} curriculum={curriculum} selectedGrade={selectedGrade} />
           ))}
         </div>
       </section>
