@@ -172,6 +172,64 @@ body {
     transform: translateY(3px);
     box-shadow: 0 3px 0 rgba(29, 34, 53, 0.16);
   }
+
+  .game-tile {
+    @apply no-tap-highlight relative overflow-hidden rounded-2xl border-4 border-[rgb(var(--line))] bg-white text-left transition;
+    box-shadow: 0 8px 0 rgba(29, 34, 53, 0.18), 0 20px 34px rgba(13, 18, 33, 0.14);
+  }
+  .game-tile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 11px 0 rgba(29, 34, 53, 0.18), 0 24px 40px rgba(13, 18, 33, 0.16);
+  }
+  .game-cover {
+    @apply relative grid aspect-[4/3] place-items-center overflow-hidden border-b-4 border-[rgb(var(--line))];
+    background:
+      radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.72) 0 14%, transparent 15%),
+      linear-gradient(135deg, rgb(56 189 248), rgb(34 197 94));
+  }
+  .game-cover::before,
+  .game-cover::after {
+    content: '';
+    position: absolute;
+    border: 4px solid rgba(29, 34, 53, 0.82);
+    background: rgba(255, 255, 255, 0.72);
+  }
+  .game-cover::before {
+    width: 42%;
+    height: 30%;
+    left: 12%;
+    bottom: 12%;
+    border-radius: 16px 16px 8px 8px;
+  }
+  .game-cover::after {
+    width: 28%;
+    height: 28%;
+    right: 13%;
+    top: 18%;
+    border-radius: 999px;
+  }
+  .game-cover-mark {
+    @apply relative z-10 rounded-2xl border-4 border-slate-900 bg-yellow-200 px-4 py-2 text-3xl font-black text-slate-900 shadow-[0_5px_0_rgba(29,34,53,0.22)];
+  }
+  .cover-orange {
+    background:
+      radial-gradient(circle at 72% 20%, rgba(255, 255, 255, 0.7) 0 12%, transparent 13%),
+      linear-gradient(135deg, rgb(251 146 60), rgb(250 204 21));
+  }
+  .cover-pink {
+    background:
+      radial-gradient(circle at 28% 28%, rgba(255, 255, 255, 0.72) 0 12%, transparent 13%),
+      linear-gradient(135deg, rgb(244 114 182), rgb(129 140 248));
+  }
+  .cover-green {
+    background:
+      radial-gradient(circle at 72% 28%, rgba(255, 255, 255, 0.72) 0 12%, transparent 13%),
+      linear-gradient(135deg, rgb(74 222 128), rgb(45 212 191));
+  }
+  .filter-pill {
+    @apply rounded-xl border-2 border-[rgb(var(--line))] bg-white/90 px-3 py-2 text-center text-xs font-black uppercase transition;
+    box-shadow: 0 4px 0 rgba(29, 34, 53, 0.14);
+  }
 }
 
 @keyframes floaty {

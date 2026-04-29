@@ -21,28 +21,40 @@ function ActivityPicker(props: {
   selected: ActivityId
   onSelect: (id: ActivityId) => void
 }) {
+  const covers: Record<ActivityId, { mark: string; cover: string; label: string }> = {
+    quickfire: { mark: '60', cover: 'cover-orange', label: 'Speed game' },
+    pickone: { mark: 'A+', cover: 'cover-green', label: 'Choice game' },
+    matchpairs: { mark: '2x', cover: 'cover-pink', label: 'Puzzle game' },
+  }
+
   return (
     <div className="grid gap-3 md:grid-cols-3">
       {ACTIVITIES.map((a) => {
         const active = a.id === props.selected
+        const cover = covers[a.id]
         return (
           <button
             key={a.id}
             type="button"
             onClick={() => props.onSelect(a.id)}
             className={[
-              'no-tap-highlight card group relative overflow-hidden p-5 text-left transition hover:-translate-y-1 active:translate-y-1',
+              'game-tile group',
               active ? 'ring-4 ring-[rgba(var(--ring),0.42)]' : '',
             ].join(' ')}
           >
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(250,204,21,0.2),transparent_45%),radial-gradient(circle_at_80%_16%,rgba(14,165,233,0.22),transparent_22%)] opacity-70 transition group-hover:opacity-100" />
-            <div className="relative">
+            <div className={['game-cover', cover.cover].join(' ')}>
+              <div className="game-cover-mark">{cover.mark}</div>
+            </div>
+            <div className="p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="text-lg font-black tracking-tight">{a.name}</div>
                 <div className="chip">{active ? 'Active' : 'Tap'}</div>
               </div>
               <div className="mt-2 text-sm font-semibold text-slate-600 [data-theme='secondary']:[&]:text-slate-300">
                 {a.blurb}
+              </div>
+              <div className="mt-3 text-xs font-black uppercase text-slate-500 [data-theme='secondary']:[&]:text-slate-300">
+                {cover.label}
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {a.skillTags.map((t) => (
